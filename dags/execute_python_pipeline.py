@@ -24,6 +24,28 @@ def remove_null_values(**kwargs):
     print(df)
     return df.to_json()
 
+def group_by_smoker(ti):
+    df = pd.read_json(ti.xcom_pull(task_ids='remove_null_values'))
+
+    smoker_df = df.groupby('smoker').agg({
+        'age': 'mean',
+        'bmi': 'mean',
+        'charges': 'mean'
+        }).reset_index()
+
+    smoker_df = smoker_df.to_csv('/Users/erasylabenov/airflow/dags/output/group_by_smoker.csv', index=False)
+
+def group_by_region(ti):
+    df = pd.read_json(ti.xcom_pull(task_ids='remove_null_values'))
+
+    region_df = df.groupby('region').agg({
+        'age': 'mean',
+        'bmi': 'mean',
+        'charges': 'mean'
+        }).reset_index()
+
+    region_df = region_df.to_csv('/Users/erasylabenov/airflow/dags/output/group_by_region.csv', index=False)
+
 
 with DAG(
     dag_id='cross_task_communication',
@@ -44,5 +66,15 @@ with DAG(
         python_callable=remove_null_values,
     )
 
-read_csv_file >> remove_null_values
+    group_by_smoker = PythonOperator(
+        task_id='group_by_smoker',
+        python_callable=group_by_smoker,
+    )
+
+    group_by_region = PythonOperator(
+        task_id='group_by_region',
+        python_callable=group_by_region,
+    )
+
+read_csv_file >> remove_null_values >> [group_by_smoker, group_by_region]
     
