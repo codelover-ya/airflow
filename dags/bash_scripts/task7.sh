@@ -1,1 +1,0 @@
-echo Task 7 completed!

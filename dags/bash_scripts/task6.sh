@@ -1,1 +1,0 @@
-echo Task 6 is completed!
