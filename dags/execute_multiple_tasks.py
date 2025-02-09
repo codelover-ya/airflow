@@ -11,35 +11,54 @@ default_args = {
 }
 
 #Create 4 tasks with simple prints
-def task1(name: str):
-    print(f"Task 1 is running with name: {name}")
+def increment_by_one(number: int):
+    print(f"Number is {number}")
+    return number + 1
 
-def task2(name: str, age: int):
-    print(f"Task 2 is running with name: {name} and age: {age}")
+def multiply_by_two(ti):
+    number = ti.xcom_pull(task_ids='increment_by_one')
+    print(f"Number is {number}")
+    return number * 2  
 
+def subtract_by_three(ti):
+    number = ti.xcom_pull(task_ids='multiply_by_two')
+    print(f"Number is {number}")
+    return number - 3
+
+def print_number(ti): 
+    number = ti.xcom_pull(task_ids='subtract_by_three')
+    print(f"Number is {number}")
 
 
 
 with DAG(
-    dag_id='execute_python_operator',
-    description='Python operator in the DAG',
+    dag_id='cross_task_communication',
+    description='Cross task communication',
     default_args=default_args,
     start_date=days_ago(1),
     schedule_interval='@daily',
-    tags=['dependencies', 'python'],
+    tags=['xcom', 'python'],
 ) as dag:
-    task1 = PythonOperator(
-        task_id='task1_with_name',
-        python_callable=task1,
-        op_kwargs={'name': 'Yerassyl'},
+    
+    increment_by_one = PythonOperator(
+        task_id='increment_by_one',
+        python_callable=increment_by_one,
+        op_args=[1],
     )
 
-    task2 = PythonOperator(
-        task_id='task2_with_name_and_age',
-        python_callable=task2,
-        op_kwargs={'name': 'Yerassyl', 'age': 20},
+    multiply_by_two = PythonOperator(
+        task_id='multiply_by_two',
+        python_callable=multiply_by_two,
     )
 
+    subtract_by_three = PythonOperator(
+        task_id='subtract_by_three',
+        python_callable=subtract_by_three,
+    )
 
+    print_number = PythonOperator(
+        task_id='print_number',
+        python_callable=print_number,
+    )
 
-task1 >> task2 
+increment_by_one >> multiply_by_two >> subtract_by_three >> print_number
