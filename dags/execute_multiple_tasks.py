@@ -15,49 +15,44 @@ with DAG(
     default_args=default_args,
     start_date=days_ago(1),
     schedule_interval='@once',
-    tags=['tag1', 'tag2']
+    tags=['scripts', 'template_search'],
+    template_searchpath='/Users/erasylabenov/airflow/dags/bash_scripts'
 ) as dag:
     task1 = BashOperator(
         task_id='task1',
-        bash_command='''
-            echo "Task 1 Started"
-
-            for i in {1..10}
-            do
-                echo "Task 1: $i"
-            done
-
-            echo "Task 1 Finished"
-        ''',
+        bash_command='task1.sh'
     )
 
     task2 = BashOperator(
         task_id='task2',
-        bash_command='''
-            echo "Task 2 Started"
-
-            sleep 4
-
-            echo "Task 2 Finished"
-        ''',
+        bash_command='task2.sh'
     )
 
     task3 = BashOperator(
         task_id='task3',
-        bash_command='''
-            echo "Task 3 Started"
-
-            sleep 15
-
-            echo "Task 3 Finished"
-        ''',
+        bash_command='task3.sh'
     )
 
     task4 = BashOperator(
         task_id='task4',
-        bash_command='echo "Task 4 Finished"', 
+        bash_command='task4.sh'
     )
 
-task1 >> [task2, task3]
+    task5 = BashOperator(
+        task_id='task5',
+        bash_command='task5.sh'
+    )
 
-task4 << [task2, task3]
+    task6 = BashOperator(
+        task_id='task6',
+        bash_command='task6.sh'
+    )
+
+    task7 = BashOperator(
+        task_id='task7',
+        bash_command='task7.sh'
+    )
+
+task1 >> task2 >> task5
+task1 >> task3 >> task6
+task1 >> task4 >> task7
